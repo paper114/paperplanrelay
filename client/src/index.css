@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --color-plane-blue: #3b82f6;
+  --color-plane-red: #ef4444;
+  --color-plane-green: #22c55e;
+  --color-plane-yellow: #eab308;
+  --color-plane-purple: #a855f7;
+  --color-plane-pink: #ec4899;
+}
+
+@keyframes fly-away {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(300px) translateY(-200px) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-in {
+  0% {
+    transform: translateX(-300px) translateY(200px) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.animate-fly-away {
+  animation: fly-away 1.5s ease-out forwards;
+}
+
+.animate-fly-in {
+  animation: fly-in 1.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

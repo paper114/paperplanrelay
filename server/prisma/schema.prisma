@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model PaperPlane {
+  id          Int       @id @default(autoincrement())
+  content     String
+  nickname    String?
+  color       String    @default("blue")
+  userId      String
+  ipHash      String?
+  likeCount   Int       @default(0)
+  reportCount Int       @default(0)
+  status      String    @default("normal")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  likes     Like[]
+  reports   Report[]
+  favorites Favorite[]
+}
+
+model Report {
+  id           Int      @id @default(autoincrement())
+  paperPlaneId Int
+  userId       String
+  reason       String
+  createdAt    DateTime @default(now())
+
+  paperPlane PaperPlane @relation(fields: [paperPlaneId], references: [id])
+}
+
+model Like {
+  id           Int      @id @default(autoincrement())
+  paperPlaneId Int
+  userId       String
+  createdAt    DateTime @default(now())
+
+  paperPlane PaperPlane @relation(fields: [paperPlaneId], references: [id])
+
+  @@unique([paperPlaneId, userId])
+}
+
+model Favorite {
+  id           Int      @id @default(autoincrement())
+  paperPlaneId Int
+  userId       String
+  createdAt    DateTime @default(now())
+
+  paperPlane PaperPlane @relation(fields: [paperPlaneId], references: [id])
+
+  @@unique([paperPlaneId, userId])
+}
