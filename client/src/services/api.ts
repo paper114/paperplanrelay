@@ -40,6 +40,7 @@ export interface AdminStats {
   totalLikes: number
   totalReports: number
   todayPlanes: number
+  pendingPlanes: number
 }
 
 export interface AdminPlaneItem {
@@ -95,10 +96,23 @@ export const adminGetPlanes = (params?: { status?: string; search?: string; page
 export const adminDeletePlane = (id: number, adminKey: string) =>
   api.delete(`/admin/paper-planes/${id}`, { headers: { 'X-Admin-Key': adminKey } })
 
+export const adminApprovePlane = (id: number, adminKey: string) =>
+  api.patch(`/admin/paper-planes/${id}/approve`, {}, { headers: { 'X-Admin-Key': adminKey } })
+
 export const adminRestorePlane = (id: number, adminKey: string) =>
   api.patch(`/admin/paper-planes/${id}/restore`, {}, { headers: { 'X-Admin-Key': adminKey } })
 
 export const adminGetStats = (adminKey: string) =>
   api.get<AdminStats>('/admin/stats', { headers: { 'X-Admin-Key': adminKey } })
+
+export const adminGetSettings = (adminKey: string) =>
+  api.get<{ manualReviewEnabled: boolean }>('/admin/settings', { headers: { 'X-Admin-Key': adminKey } })
+
+export const adminSetManualReview = (enabled: boolean, adminKey: string) =>
+  api.patch<{ success: boolean; manualReviewEnabled: boolean }>(
+    '/admin/settings/manual-review',
+    { enabled },
+    { headers: { 'X-Admin-Key': adminKey } },
+  )
 
 export default api

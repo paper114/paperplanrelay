@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { adminGetPlanes, adminDeletePlane, adminRestorePlane, adminGetStats } from '../services/api'
+import { adminGetPlanes, adminDeletePlane, adminRestorePlane, adminGetStats, adminGetSettings, adminSetManualReview, adminApprovePlane } from '../services/api'
 import type { AdminPlaneItem, AdminStats } from '../services/api'
 
 const ADMIN_KEY_KEY = 'paperplane_admin_key'
@@ -41,6 +41,14 @@ function UndoIcon({ className = 'w-4 h-4' }: { className?: string }) {
   )
 }
 
+function CheckIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
 export default function Admin() {
   const [authenticated, setAuthenticated] = useState(false)
   const [keyInput, setKeyInput] = useState('')
@@ -54,6 +62,8 @@ export default function Admin() {
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [manualReviewEnabled, setManualReviewEnabled] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
 
   useEffect(() => {
     const savedKey = sessionStorage.getItem(ADMIN_KEY_KEY)
@@ -80,17 +90,19 @@ export default function Admin() {
     setLoading(true)
     const k = key || adminKey
     try {
-      const [planesRes, statsRes] = await Promise.all([
+      const [planesRes, statsRes, settingsRes] = await Promise.all([
         adminGetPlanes({
           page: p ?? page,
           search: s ?? (search || undefined),
           status: status ?? (statusFilter || undefined),
         }, k),
         adminGetStats(k),
+        adminGetSettings(k),
       ])
       setPlanes(planesRes.data.items)
       setTotalPages(planesRes.data.totalPages)
       setStats(statsRes.data)
+      setManualReviewEnabled(settingsRes.data.manualReviewEnabled)
     } catch {} finally {
       setLoading(false)
     }
@@ -119,6 +131,27 @@ export default function Admin() {
       await adminRestorePlane(id, adminKey)
       loadData()
     } catch {}
+  }
+
+  const handleApprove = async (id: number) => {
+    try {
+      await adminApprovePlane(id, adminKey)
+      loadData()
+    } catch {}
+  }
+
+  const handleManualReviewToggle = async () => {
+    const next = !manualReviewEnabled
+    setSavingSettings(true)
+    try {
+      const res = await adminSetManualReview(next, adminKey)
+      setManualReviewEnabled(res.data.manualReviewEnabled)
+      loadData()
+    } catch {
+      alert('更新审核模式失败，请稍后再试')
+    } finally {
+      setSavingSettings(false)
+    }
   }
 
   const handleSearch = () => {
@@ -159,13 +192,33 @@ export default function Admin() {
     <div className="min-h-[calc(100vh-8.5rem)] max-w-6xl mx-auto px-4 py-8 page-enter">
       <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>管理员后台</h1>
 
+      <div className="glass-card p-5 mb-6">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>强制人工审核</h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+              开启后，新投递的纸飞机会进入待审核，通过后才会出现在接收页。
+            </p>
+          </div>
+          <button
+            onClick={handleManualReviewToggle}
+            disabled={savingSettings}
+            className={manualReviewEnabled ? 'btn-primary' : 'btn-secondary'}
+            style={{ minWidth: 96, opacity: savingSettings ? 0.65 : 1 }}
+          >
+            {manualReviewEnabled ? '已开启' : '已关闭'}
+          </button>
+        </div>
+      </div>
+
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
           {[
             { label: '总纸飞机', value: stats.totalPlanes, color: '#111111' },
             { label: '总点赞', value: stats.totalLikes, color: '#111111' },
             { label: '总举报', value: stats.totalReports, color: '#111111' },
             { label: '今日投递', value: stats.todayPlanes, color: '#111111' },
+            { label: '待审核', value: stats.pendingPlanes, color: '#111111' },
           ].map((s) => (
             <div key={s.label} className="glass-card p-4 text-center">
               <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
@@ -193,6 +246,7 @@ export default function Admin() {
           className="glass-input p-3"
         >
           <option value="">全部状态</option>
+          <option value="pending">待审核</option>
           <option value="normal">正常</option>
           <option value="hidden">已隐藏</option>
           <option value="deleted">已删除</option>
@@ -230,14 +284,33 @@ export default function Admin() {
                             border: '1px solid #111111',
                           }}
                         >
-                          {plane.status === 'normal' ? '正常' : plane.status === 'hidden' ? '已隐藏' : '已删除'}
+                          {plane.status === 'pending' ? '待审核' : plane.status === 'normal' ? '正常' : plane.status === 'hidden' ? '已隐藏' : '已删除'}
                         </span>
                       </td>
                       <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{plane.likeCount}</td>
                       <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{plane.reportCount}</td>
                       <td className="py-3 px-4 text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(plane.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4">
-                        {plane.status === 'normal' ? (
+                        {plane.status === 'pending' ? (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => handleApprove(plane.id)}
+                              className="btn-icon"
+                              style={{ color: '#111111', borderColor: '#111111' }}
+                            >
+                              <CheckIcon className="w-3.5 h-3.5" />
+                              <span>通过</span>
+                            </button>
+                            <button
+                              onClick={() => handleDelete(plane.id)}
+                              className="btn-icon"
+                              style={{ color: '#111111', borderColor: '#111111' }}
+                            >
+                              <TrashIcon className="w-3.5 h-3.5" />
+                              <span>删除</span>
+                            </button>
+                          </div>
+                        ) : plane.status === 'normal' ? (
                           <button
                             onClick={() => handleDelete(plane.id)}
                             className="btn-icon"

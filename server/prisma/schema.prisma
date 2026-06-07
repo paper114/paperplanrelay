@@ -56,3 +56,9 @@ model Favorite {
 
   @@unique([paperPlaneId, userId])
 }
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

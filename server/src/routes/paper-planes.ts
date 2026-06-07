@@ -8,6 +8,14 @@ import { aiModerate } from "../utils/aiModeration";
 const router = Router();
 const prisma = new PrismaClient();
 const validPlaneColors = new Set(["blue", "purple", "pink", "green", "yellow", "red"]);
+const MANUAL_REVIEW_SETTING_KEY = "manual_review_enabled";
+
+async function isManualReviewEnabled(): Promise<boolean> {
+  const setting = await prisma.appSetting.findUnique({
+    where: { key: MANUAL_REVIEW_SETTING_KEY },
+  });
+  return setting?.value === "true";
+}
 
 router.post("/", requireUserId, async (req: Request, res: Response) => {
   try {
@@ -46,6 +54,7 @@ router.post("/", requireUserId, async (req: Request, res: Response) => {
         nickname: nickname || null,
         color: color || "blue",
         userId,
+        status: await isManualReviewEnabled() ? "pending" : "normal",
       },
     });
 
