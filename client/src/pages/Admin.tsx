@@ -56,7 +56,7 @@ export default function Admin() {
   const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
-    const savedKey = localStorage.getItem(ADMIN_KEY_KEY)
+    const savedKey = sessionStorage.getItem(ADMIN_KEY_KEY)
     if (savedKey) {
       setKeyInput(savedKey)
       verifyKey(savedKey)
@@ -68,7 +68,7 @@ export default function Admin() {
       await adminGetStats(key)
       setAuthenticated(true)
       setAdminKey(key)
-      localStorage.setItem(ADMIN_KEY_KEY, key)
+      sessionStorage.setItem(ADMIN_KEY_KEY, key)
       loadData(1, '', '', key)
     } catch {
       setLoginError('密钥无效')
@@ -162,10 +162,10 @@ export default function Admin() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: '总纸飞机', value: stats.totalPlanes, color: '#6C8CFF' },
-            { label: '总点赞', value: stats.totalLikes, color: '#FF9ACB' },
-            { label: '总举报', value: stats.totalReports, color: '#FF8A8A' },
-            { label: '今日投递', value: stats.todayPlanes, color: '#78E0B6' },
+            { label: '总纸飞机', value: stats.totalPlanes, color: '#111111' },
+            { label: '总点赞', value: stats.totalLikes, color: '#111111' },
+            { label: '总举报', value: stats.totalReports, color: '#111111' },
+            { label: '今日投递', value: stats.todayPlanes, color: '#111111' },
           ].map((s) => (
             <div key={s.label} className="glass-card p-4 text-center">
               <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>

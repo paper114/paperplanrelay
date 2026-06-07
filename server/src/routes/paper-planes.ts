@@ -7,6 +7,7 @@ import { aiModerate } from "../utils/aiModeration";
 
 const router = Router();
 const prisma = new PrismaClient();
+const validPlaneColors = new Set(["blue", "purple", "pink", "green", "yellow", "red"]);
 
 router.post("/", requireUserId, async (req: Request, res: Response) => {
   try {
@@ -19,6 +20,10 @@ router.post("/", requireUserId, async (req: Request, res: Response) => {
 
     if (nickname && nickname.length > 20) {
       return res.status(400).json({ success: false, message: "昵称不能超过20字" });
+    }
+
+    if (color && !validPlaneColors.has(color)) {
+      return res.status(400).json({ success: false, message: "无效的纸飞机颜色" });
     }
 
     if (containsSensitiveWord(content)) {
