@@ -1,0 +1,25 @@
+services:
+  paperplanrelay:
+    build:
+      context: .
+      args:
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:-}
+        VITE_ICP_BEIAN: ${VITE_ICP_BEIAN:-}
+        VITE_PUBLIC_SECURITY_BEIAN: ${VITE_PUBLIC_SECURITY_BEIAN:-}
+    image: paperplanrelay:local
+    container_name: paperplanrelay
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      ADMIN_KEY: ${ADMIN_KEY:?ADMIN_KEY is required}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?PUBLIC_ORIGIN is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      DATABASE_URL: file:/data/paperplane.db
+      TRANSFORMERS_CACHE: /data/models
+      TRANSFORMERS_REMOTE_HOST: ${TRANSFORMERS_REMOTE_HOST:-https://hf-mirror.com}
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:10001:3000"
+    volumes:
+      - ./data:/data

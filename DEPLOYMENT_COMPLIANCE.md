@@ -14,6 +14,7 @@ This project is prepared for a public deployment, but the site operator still ne
 - Keep the SQLite database path on persistent NAS storage, for example `DATABASE_URL=file:/data/paperplane.db`.
 - Keep the local moderation model cache on persistent storage if possible, for example `TRANSFORMERS_CACHE=/data/models`.
 - Route Cloudflare Tunnel only to the web app port. Do not expose NAS admin panels, SSH, SMB, or database ports.
+- The included Docker Compose file binds the app to `127.0.0.1:3000` for local checks and `127.0.0.1:10001` for the existing Cloudflare Tunnel origin on the NAS.
 
 ## Recommended Cloudflare settings
 
@@ -22,6 +23,7 @@ This project is prepared for a public deployment, but the site operator still ne
 - Keep origin access private: the Node service can listen on the NAS LAN or localhost side of the tunnel, while Cloudflare Tunnel handles public ingress.
 - Enable WAF and basic bot protection if available on the active Cloudflare plan.
 - Keep `cloudflared` updated and run it as a managed service on the NAS.
+- If Hugging Face is slow from the NAS, keep `TRANSFORMERS_REMOTE_HOST=https://hf-mirror.com` so the local moderation model can be downloaded and cached under `/data/models`.
 
 ## Data and moderation notes
 

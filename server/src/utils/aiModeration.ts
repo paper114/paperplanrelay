@@ -9,7 +9,14 @@ async function loadModel() {
   if (loaded || loading) return;
   loading = true;
   try {
-    const { pipeline } = await import("@xenova/transformers");
+    const { env, pipeline } = await import("@xenova/transformers");
+    const remoteHost = process.env.TRANSFORMERS_REMOTE_HOST?.trim();
+    if (remoteHost) {
+      env.remoteHost = remoteHost.endsWith("/") ? remoteHost : `${remoteHost}/`;
+    }
+    if (process.env.TRANSFORMERS_CACHE?.trim()) {
+      env.cacheDir = process.env.TRANSFORMERS_CACHE.trim();
+    }
     console.log("正在加载AI审核模型（首次需要下载，约40MB）...");
     classifier = await pipeline("text-classification", "Xenova/toxic-bert", {
       quantized: true,
