@@ -52,6 +52,8 @@ export interface AdminPlaneItem {
   likeCount: number
   reportCount: number
   status: string
+  trashReason?: string | null
+  trashedAt?: string | null
   createdAt: string
   updatedAt: string
   _count: {
@@ -87,7 +89,7 @@ export const getFavorites = () =>
 export const reportPlane = (id: number, reason: string) =>
   api.post(`/paper-planes/${id}/report`, { reason })
 
-export const adminGetPlanes = (params?: { status?: string; search?: string; page?: number }, adminKey?: string) => {
+export const adminGetPlanes = (params?: { status?: string; search?: string; page?: number; view?: string; trashReason?: string; sort?: string }, adminKey?: string) => {
   const headers: Record<string, string> = {}
   if (adminKey) headers['X-Admin-Key'] = adminKey
   return api.get<{ items: AdminPlaneItem[]; total: number; page: number; pageSize: number; totalPages: number }>('/admin/paper-planes', { params, headers })
@@ -98,6 +100,9 @@ export const adminDeletePlane = (id: number, adminKey: string) =>
 
 export const adminApprovePlane = (id: number, adminKey: string) =>
   api.patch(`/admin/paper-planes/${id}/approve`, {}, { headers: { 'X-Admin-Key': adminKey } })
+
+export const adminRejectPlane = (id: number, adminKey: string) =>
+  api.patch(`/admin/paper-planes/${id}/reject`, {}, { headers: { 'X-Admin-Key': adminKey } })
 
 export const adminRestorePlane = (id: number, adminKey: string) =>
   api.patch(`/admin/paper-planes/${id}/restore`, {}, { headers: { 'X-Admin-Key': adminKey } })

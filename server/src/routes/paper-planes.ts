@@ -239,7 +239,9 @@ router.post("/:id/report", requireUserId, async (req: Request, res: Response) =>
     const updateData: any = { reportCount: newReportCount };
 
     if (newReportCount >= 3) {
-      updateData.status = "hidden";
+      updateData.status = "deleted";
+      updateData.trashReason = "report_hidden";
+      updateData.trashedAt = new Date();
     }
 
     await prisma.$transaction([

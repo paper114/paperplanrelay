@@ -17,6 +17,8 @@ model PaperPlane {
   likeCount   Int       @default(0)
   reportCount Int       @default(0)
   status      String    @default("normal")
+  trashReason String?
+  trashedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
