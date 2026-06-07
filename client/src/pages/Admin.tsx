@@ -107,8 +107,8 @@ export default function Admin() {
     sort: view === 'review' ? 'asc' : sort,
   })
 
-  const loadData = async (targetPage = page, key = adminKey) => {
-    setLoading(true)
+  const loadData = async (targetPage = page, key = adminKey, quiet = false) => {
+    if (!quiet) setLoading(true)
     try {
       const [planesRes, statsRes, settingsRes] = await Promise.all([
         adminGetPlanes(buildListParams(targetPage), key),
@@ -121,7 +121,7 @@ export default function Admin() {
       setManualReviewEnabled(settingsRes.data.manualReviewEnabled)
     } catch {
     } finally {
-      setLoading(false)
+      if (!quiet) setLoading(false)
     }
   }
 
@@ -141,6 +141,14 @@ export default function Admin() {
   useEffect(() => {
     if (authenticated) loadData(1)
   }, [view, trashReason, sort])
+
+  useEffect(() => {
+    if (!authenticated || !adminKey) return
+    const timer = window.setInterval(() => {
+      loadData(page, adminKey, true)
+    }, 5000)
+    return () => window.clearInterval(timer)
+  }, [authenticated, adminKey, page, view, trashReason, sort, search])
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
