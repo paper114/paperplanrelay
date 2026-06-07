@@ -1,18 +1,36 @@
 import { useState } from 'react'
 
 const reasons = [
-  { value: 'spam', label: '垃圾广告' },
-  { value: 'abuse', label: '辱骂攻击' },
-  { value: 'porn', label: '色情低俗' },
-  { value: 'politics', label: '政治敏感' },
-  { value: 'illegal', label: '违法内容' },
-  { value: 'other', label: '其他原因' },
+  '垃圾广告',
+  '辱骂攻击',
+  '色情低俗',
+  '政治敏感',
+  '违法内容',
+  '其他原因',
 ]
 
 interface ReportModalProps {
   open: boolean
   onClose: () => void
   onSubmit: (reason: string) => void
+}
+
+function CheckCircleIcon({ className = 'w-12 h-12' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="#78E0B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
+}
+
+function XIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
 }
 
 export default function ReportModal({ open, onClose, onSubmit }: ReportModalProps) {
@@ -39,54 +57,69 @@ export default function ReportModal({ open, onClose, onSubmit }: ReportModalProp
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="modal-mask" onClick={onClose}>
       <div
-        className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
+        className="glass-card-strong w-full max-w-md p-7 animate-page-enter"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white mb-4">举报纸飞机</h3>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>举报纸飞机</h3>
+          <button onClick={onClose} className="btn-icon" style={{ height: 32, width: 32, padding: 0 }} aria-label="关闭">
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
 
         {done ? (
-          <div className="text-center py-6">
-            <div className="text-4xl mb-2">✅</div>
-            <p className="text-gray-300">举报已提交，我们会尽快处理</p>
+          <div className="text-center py-8">
+            <CheckCircleIcon className="w-14 h-14 mx-auto mb-3" />
+            <p style={{ color: 'var(--text-secondary)' }}>举报已提交，我们会尽快处理</p>
           </div>
         ) : (
           <>
-            <p className="text-gray-400 text-sm mb-4">请选择举报原因：</p>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>请选择举报原因：</p>
             <div className="space-y-2 mb-6">
               {reasons.map((r) => (
                 <label
-                  key={r.value}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                    selected === r.value
-                      ? 'bg-blue-600/20 border border-blue-500/50'
-                      : 'bg-gray-800/50 border border-transparent hover:bg-gray-800'
-                  }`}
+                  key={r}
+                  className="flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-180"
+                  style={{
+                    background: selected === r ? 'rgba(108, 140, 255, 0.12)' : 'rgba(255,255,255,0.20)',
+                    border: selected === r ? '1px solid rgba(108, 140, 255, 0.3)' : '1px solid transparent',
+                  }}
                 >
                   <input
                     type="radio"
                     name="reason"
-                    value={r.value}
-                    checked={selected === r.value}
-                    onChange={() => setSelected(r.value)}
-                    className="accent-blue-500"
+                    value={r}
+                    checked={selected === r}
+                    onChange={() => setSelected(r)}
+                    className="accent-[#6C8CFF]"
                   />
-                  <span className="text-gray-200">{r.label}</span>
+                  <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{r}</span>
                 </label>
               ))}
             </div>
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-              >
+              <button onClick={onClose} className="btn-secondary text-sm" style={{ height: 38 }}>
                 取消
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!selected || submitting}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+                className="text-sm"
+                style={{
+                  height: 38,
+                  padding: '0 18px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: selected && !submitting
+                    ? 'linear-gradient(135deg, #FF6B8A, #FF9ACB)'
+                    : 'rgba(255,107,138,0.4)',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: selected && !submitting ? 'pointer' : 'not-allowed',
+                  opacity: submitting ? 0.6 : 1,
+                }}
               >
                 {submitting ? '提交中...' : '提交举报'}
               </button>

@@ -1,15 +1,16 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { checkRateLimit } from "../middleware/rateLimit";
-import { requireUserId } from "../middleware/auth";
+import { requireUserId, getHeaderString } from "../middleware/auth";
 import { containsSensitiveWord } from "../utils/sensitiveWords";
+import { aiModerate } from "../utils/aiModeration";
 
 const router = Router();
 const prisma = new PrismaClient();
 
 router.post("/", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
     const { content, nickname, color } = req.body;
 
     if (!content || content.length < 1 || content.length > 500) {
@@ -22,6 +23,11 @@ router.post("/", requireUserId, async (req: Request, res: Response) => {
 
     if (containsSensitiveWord(content)) {
       return res.status(400).json({ success: false, message: "内容包含敏感词，请修改后重试" });
+    }
+
+    const aiResult = await aiModerate(content);
+    if (!aiResult.safe) {
+      return res.status(400).json({ success: false, message: aiResult.reason || "AI审核未通过，请修改内容后重试" });
     }
 
     const rateCheck = checkRateLimit(userId);
@@ -47,7 +53,7 @@ router.post("/", requireUserId, async (req: Request, res: Response) => {
 
 router.get("/random", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
 
     const planes = await prisma.paperPlane.findMany({
       where: {
@@ -70,7 +76,20 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
     }
 
     const randomIndex = Math.floor(Math.random() * planes.length);
-    return res.json(planes[randomIndex]);
+    const plane = planes[randomIndex];
+
+    const existingLike = await prisma.like.findUnique({
+      where: { paperPlaneId_userId: { paperPlaneId: plane.id, userId } },
+    });
+    const existingFavorite = await prisma.favorite.findUnique({
+      where: { paperPlaneId_userId: { paperPlaneId: plane.id, userId } },
+    });
+
+    return res.json({
+      ...plane,
+      isLiked: !!existingLike,
+      isFavorited: !!existingFavorite,
+    });
   } catch (error) {
     console.error("获取随机纸飞机失败:", error);
     return res.status(500).json({ success: false, message: "服务器错误" });
@@ -91,7 +110,7 @@ router.get("/stats", async (_req: Request, res: Response) => {
 
 router.post("/:id/like", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
     const planeId = parseInt(req.params.id as string, 10);
 
     if (isNaN(planeId)) {
@@ -128,11 +147,43 @@ router.post("/:id/like", requireUserId, async (req: Request, res: Response) => {
   }
 });
 
+router.delete("/:id/like", requireUserId, async (req: Request, res: Response) => {
+  try {
+    const userId = getHeaderString(req, "x-user-id");
+    const planeId = parseInt(req.params.id as string, 10);
+
+    if (isNaN(planeId)) {
+      return res.status(400).json({ success: false, message: "无效的纸飞机ID" });
+    }
+
+    const existingLike = await prisma.like.findUnique({
+      where: { paperPlaneId_userId: { paperPlaneId: planeId, userId } },
+    });
+
+    if (!existingLike) {
+      return res.status(400).json({ success: false, message: "尚未点赞" });
+    }
+
+    await prisma.$transaction([
+      prisma.like.delete({ where: { id: existingLike.id } }),
+      prisma.paperPlane.update({
+        where: { id: planeId },
+        data: { likeCount: { decrement: 1 } },
+      }),
+    ]);
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("取消点赞失败:", error);
+    return res.status(500).json({ success: false, message: "服务器错误" });
+  }
+});
+
 const validReportReasons = ["垃圾广告", "辱骂攻击", "色情低俗", "政治敏感", "违法内容", "其他原因"];
 
 router.post("/:id/report", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
     const planeId = parseInt(req.params.id as string, 10);
     const { reason } = req.body;
 
@@ -183,7 +234,7 @@ router.post("/:id/report", requireUserId, async (req: Request, res: Response) =>
 
 router.post("/:id/favorite", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
     const planeId = parseInt(req.params.id as string, 10);
 
     if (isNaN(planeId)) {
@@ -216,7 +267,7 @@ router.post("/:id/favorite", requireUserId, async (req: Request, res: Response) 
 
 router.delete("/:id/favorite", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
     const planeId = parseInt(req.params.id as string, 10);
 
     if (isNaN(planeId)) {

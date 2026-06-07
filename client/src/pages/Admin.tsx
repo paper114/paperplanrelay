@@ -1,20 +1,58 @@
 import { useEffect, useState } from 'react'
-import api, { adminGetPlanes, adminDeletePlane, adminRestorePlane, adminGetStats, adminLogin } from '../services/api'
-import type { PaperPlane } from '../services/api'
+import { adminGetPlanes, adminDeletePlane, adminRestorePlane, adminGetStats } from '../services/api'
+import type { AdminPlaneItem, AdminStats } from '../services/api'
 
 const ADMIN_KEY_KEY = 'paperplane_admin_key'
+
+function LockIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
+function SearchIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function TrashIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  )
+}
+
+function UndoIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="1 4 1 10 7 10" />
+      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+    </svg>
+  )
+}
 
 export default function Admin() {
   const [authenticated, setAuthenticated] = useState(false)
   const [keyInput, setKeyInput] = useState('')
   const [loginError, setLoginError] = useState('')
+  const [adminKey, setAdminKey] = useState('')
 
-  const [planes, setPlanes] = useState<PaperPlane[]>([])
-  const [stats, setStats] = useState<{ totalPlanes: number; reportedPlanes: number } | null>(null)
+  const [planes, setPlanes] = useState<AdminPlaneItem[]>([])
+  const [stats, setStats] = useState<AdminStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
     const savedKey = localStorage.getItem(ADMIN_KEY_KEY)
@@ -26,26 +64,31 @@ export default function Admin() {
 
   const verifyKey = async (key: string) => {
     try {
-      await adminLogin(key)
+      await adminGetStats(key)
       setAuthenticated(true)
+      setAdminKey(key)
       localStorage.setItem(ADMIN_KEY_KEY, key)
-      loadData(key)
+      loadData(1, '', '', key)
     } catch {
       setLoginError('密钥无效')
       setAuthenticated(false)
     }
   }
 
-  const loadData = async (adminKey?: string) => {
+  const loadData = async (p?: number, s?: string, status?: string, key?: string) => {
     setLoading(true)
-    const k = adminKey || localStorage.getItem(ADMIN_KEY_KEY) || ''
+    const k = key || adminKey
     try {
-      api.defaults.headers.common['X-Admin-Key'] = k
       const [planesRes, statsRes] = await Promise.all([
-        adminGetPlanes({ status: statusFilter || undefined, search: search || undefined, page }),
-        adminGetStats(),
+        adminGetPlanes({
+          page: p ?? page,
+          search: s ?? (search || undefined),
+          status: status ?? (statusFilter || undefined),
+        }, k),
+        adminGetStats(k),
       ])
-      setPlanes(planesRes.data.planes)
+      setPlanes(planesRes.data.items)
+      setTotalPages(planesRes.data.totalPages)
       setStats(statsRes.data)
     } catch {} finally {
       setLoading(false)
@@ -62,161 +105,180 @@ export default function Admin() {
     verifyKey(keyInput)
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('确定删除该纸飞机？')) return
     try {
-      await adminDeletePlane(id)
+      await adminDeletePlane(id, adminKey)
       loadData()
     } catch {}
   }
 
-  const handleRestore = async (id: string) => {
+  const handleRestore = async (id: number) => {
     try {
-      await adminRestorePlane(id)
+      await adminRestorePlane(id, adminKey)
       loadData()
     } catch {}
   }
 
   const handleSearch = () => {
     setPage(1)
-    loadData()
+    loadData(1)
   }
 
   if (!authenticated) {
     return (
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4">
-        <form onSubmit={handleLogin} className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 w-full max-w-sm">
-          <h2 className="text-xl font-bold text-white mb-6 text-center">🔐 管理员登录</h2>
-          <input
-            type="password"
-            value={keyInput}
-            onChange={(e) => setKeyInput(e.target.value)}
-            placeholder="请输入管理员密钥"
-            className="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 mb-4"
-          />
-          {loginError && <p className="text-red-400 text-sm mb-4">{loginError}</p>}
-          <button
-            type="submit"
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-semibold hover:from-blue-500 hover:to-purple-500 transition-all"
-          >
-            登录
-          </button>
+        <form onSubmit={handleLogin} className="glass-card p-8 w-full max-w-sm">
+          <div className="relative z-10">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <LockIcon className="w-5 h-5" style={{ color: '#6C8CFF' }} />
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>管理员登录</h2>
+            </div>
+            <input
+              type="password"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="请输入管理员密钥"
+              className="glass-input w-full p-3 mb-4"
+            />
+            {loginError && <p className="text-sm mb-4" style={{ color: '#FF6B8A' }}>{loginError}</p>}
+            <button
+              type="submit"
+              className="btn-primary w-full"
+            >
+              登录
+            </button>
+          </div>
         </form>
       </div>
     )
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-white mb-6">管理员后台 🛡️</h1>
+    <div className="min-h-[calc(100vh-8rem)] max-w-6xl mx-auto px-4 py-8 page-enter">
+      <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>管理员后台</h1>
 
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-blue-400">{stats.totalPlanes}</div>
-            <div className="text-gray-500 text-sm">总纸飞机</div>
-          </div>
-          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-red-400">{stats.reportedPlanes}</div>
-            <div className="text-gray-500 text-sm">被举报</div>
-          </div>
+          {[
+            { label: '总纸飞机', value: stats.totalPlanes, color: '#6C8CFF' },
+            { label: '总点赞', value: stats.totalLikes, color: '#FF9ACB' },
+            { label: '总举报', value: stats.totalReports, color: '#FF8A8A' },
+            { label: '今日投递', value: stats.todayPlanes, color: '#78E0B6' },
+          ].map((s) => (
+            <div key={s.label} className="glass-card p-4 text-center">
+              <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
+              <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{s.label}</div>
+            </div>
+          ))}
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="搜索内容..."
-          className="flex-1 bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        />
+        <div className="relative flex-1">
+          <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="搜索内容..."
+            className="glass-input w-full p-3 pl-9"
+          />
+        </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
+          className="glass-input p-3"
         >
           <option value="">全部状态</option>
-          <option value="active">正常</option>
+          <option value="normal">正常</option>
+          <option value="hidden">已隐藏</option>
           <option value="deleted">已删除</option>
         </select>
-        <button
-          onClick={handleSearch}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-colors"
-        >
+        <button onClick={handleSearch} className="btn-primary text-sm">
           搜索
         </button>
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-center py-12">加载中...</p>
+        <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>加载中...</p>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-800 text-gray-400">
-                  <th className="text-left py-3 px-2">ID</th>
-                  <th className="text-left py-3 px-2">内容摘要</th>
-                  <th className="text-left py-3 px-2">状态</th>
-                  <th className="text-left py-3 px-2">点赞</th>
-                  <th className="text-left py-3 px-2">举报</th>
-                  <th className="text-left py-3 px-2">时间</th>
-                  <th className="text-left py-3 px-2">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {planes.map((plane) => (
-                  <tr key={plane.id} className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                    <td className="py-3 px-2 text-gray-500 font-mono text-xs">{plane.id.slice(0, 8)}</td>
-                    <td className="py-3 px-2 text-gray-300 max-w-[200px] truncate">{plane.content}</td>
-                    <td className="py-3 px-2">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
-                        plane.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {plane.status === 'active' ? '正常' : '已删除'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-gray-400">{plane.likes}</td>
-                    <td className="py-3 px-2 text-gray-400">{plane.reports}</td>
-                    <td className="py-3 px-2 text-gray-500 text-xs">{new Date(plane.createdAt).toLocaleDateString()}</td>
-                    <td className="py-3 px-2">
-                      {plane.status === 'active' ? (
-                        <button
-                          onClick={() => handleDelete(plane.id)}
-                          className="text-red-400 hover:text-red-300 text-xs"
-                        >
-                          删除
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleRestore(plane.id)}
-                          className="text-green-400 hover:text-green-300 text-xs"
-                        >
-                          恢复
-                        </button>
-                      )}
-                    </td>
+          <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                    {['ID', '内容摘要', '状态', '点赞', '举报', '时间', '操作'].map((h) => (
+                      <th key={h} className="text-left py-3 px-4 font-medium" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {planes.map((plane) => (
+                    <tr key={plane.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                      <td className="py-3 px-4 font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{plane.id}</td>
+                      <td className="py-3 px-4 max-w-[200px] truncate" style={{ color: 'var(--text-primary)' }}>{plane.content}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className="px-2 py-0.5 rounded-full text-xs"
+                          style={{
+                            background: plane.status === 'normal' ? 'rgba(120, 224, 182, 0.15)' : plane.status === 'hidden' ? 'rgba(255, 224, 138, 0.15)' : 'rgba(255, 138, 138, 0.15)',
+                            color: plane.status === 'normal' ? '#78E0B6' : plane.status === 'hidden' ? '#FFE08A' : '#FF8A8A',
+                          }}
+                        >
+                          {plane.status === 'normal' ? '正常' : plane.status === 'hidden' ? '已隐藏' : '已删除'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{plane.likeCount}</td>
+                      <td className="py-3 px-4" style={{ color: 'var(--text-secondary)' }}>{plane.reportCount}</td>
+                      <td className="py-3 px-4 text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(plane.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">
+                        {plane.status === 'normal' ? (
+                          <button
+                            onClick={() => handleDelete(plane.id)}
+                            className="btn-icon"
+                            style={{ color: '#FF8A8A', borderColor: 'rgba(255,138,138,0.2)' }}
+                          >
+                            <TrashIcon className="w-3.5 h-3.5" />
+                            <span>删除</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleRestore(plane.id)}
+                            className="btn-icon"
+                            style={{ color: '#78E0B6', borderColor: 'rgba(120,224,182,0.2)' }}
+                          >
+                            <UndoIcon className="w-3.5 h-3.5" />
+                            <span>恢复</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center items-center gap-3 mt-6">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 bg-gray-800 rounded-lg text-gray-300 disabled:opacity-50 hover:bg-gray-700"
+              className="btn-secondary text-sm"
+              style={{ height: 36, opacity: page === 1 ? 0.5 : 1 }}
             >
               上一页
             </button>
-            <span className="px-4 py-2 text-gray-400">第 {page} 页</span>
+            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              第 {page} / {totalPages} 页
+            </span>
             <button
               onClick={() => setPage((p) => p + 1)}
-              disabled={planes.length < 20}
-              className="px-4 py-2 bg-gray-800 rounded-lg text-gray-300 disabled:opacity-50 hover:bg-gray-700"
+              disabled={page >= totalPages}
+              className="btn-secondary text-sm"
+              style={{ height: 36, opacity: page >= totalPages ? 0.5 : 1 }}
             >
               下一页
             </button>

@@ -18,21 +18,45 @@ export interface CreatePlaneData {
 }
 
 export interface PaperPlane {
-  id: string
+  id: number
   content: string
   nickname?: string
   color: string
-  likes: number
-  reports: number
+  likeCount: number
+  reportCount: number
   status: string
   createdAt: string
+  isLiked?: boolean
   isFavorited?: boolean
+  favoriteAt?: string
 }
 
 export interface Stats {
+  totalCount: number
+}
+
+export interface AdminStats {
   totalPlanes: number
-  totalUsers: number
+  totalLikes: number
+  totalReports: number
   todayPlanes: number
+}
+
+export interface AdminPlaneItem {
+  id: number
+  content: string
+  nickname?: string
+  color: string
+  userId: string
+  likeCount: number
+  reportCount: number
+  status: string
+  createdAt: string
+  updatedAt: string
+  _count: {
+    likes: number
+    reports: number
+  }
 }
 
 export const createPlane = (data: CreatePlaneData) =>
@@ -44,34 +68,37 @@ export const getRandomPlane = () =>
 export const getStats = () =>
   api.get<Stats>('/paper-planes/stats')
 
-export const likePlane = (id: string) =>
+export const likePlane = (id: number) =>
   api.post(`/paper-planes/${id}/like`)
 
-export const favoritePlane = (id: string) =>
+export const unlikePlane = (id: number) =>
+  api.delete(`/paper-planes/${id}/like`)
+
+export const favoritePlane = (id: number) =>
   api.post(`/paper-planes/${id}/favorite`)
 
-export const unfavoritePlane = (id: string) =>
+export const unfavoritePlane = (id: number) =>
   api.delete(`/paper-planes/${id}/favorite`)
 
 export const getFavorites = () =>
   api.get<PaperPlane[]>('/favorites')
 
-export const reportPlane = (id: string, reason: string) =>
+export const reportPlane = (id: number, reason: string) =>
   api.post(`/paper-planes/${id}/report`, { reason })
 
-export const adminGetPlanes = (params?: { status?: string; search?: string; page?: number }) =>
-  api.get<{ planes: PaperPlane[]; total: number }>('/admin/planes', { params })
+export const adminGetPlanes = (params?: { status?: string; search?: string; page?: number }, adminKey?: string) => {
+  const headers: Record<string, string> = {}
+  if (adminKey) headers['X-Admin-Key'] = adminKey
+  return api.get<{ items: AdminPlaneItem[]; total: number; page: number; pageSize: number; totalPages: number }>('/admin/paper-planes', { params, headers })
+}
 
-export const adminDeletePlane = (id: string) =>
-  api.delete(`/admin/planes/${id}`)
+export const adminDeletePlane = (id: number, adminKey: string) =>
+  api.delete(`/admin/paper-planes/${id}`, { headers: { 'X-Admin-Key': adminKey } })
 
-export const adminRestorePlane = (id: string) =>
-  api.post(`/admin/planes/${id}/restore`)
+export const adminRestorePlane = (id: number, adminKey: string) =>
+  api.patch(`/admin/paper-planes/${id}/restore`, {}, { headers: { 'X-Admin-Key': adminKey } })
 
-export const adminGetStats = () =>
-  api.get<Stats & { reportedPlanes: number }>('/admin/stats')
-
-export const adminLogin = (key: string) =>
-  api.post('/admin/login', { key })
+export const adminGetStats = (adminKey: string) =>
+  api.get<AdminStats>('/admin/stats', { headers: { 'X-Admin-Key': adminKey } })
 
 export default api

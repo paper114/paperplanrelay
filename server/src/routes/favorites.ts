@@ -1,13 +1,13 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { requireUserId } from "../middleware/auth";
+import { requireUserId, getHeaderString } from "../middleware/auth";
 
 const router = Router();
 const prisma = new PrismaClient();
 
 router.get("/", requireUserId, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["x-user-id"] as string;
+    const userId = getHeaderString(req, "x-user-id");
 
     const favorites = await prisma.favorite.findMany({
       where: { userId },

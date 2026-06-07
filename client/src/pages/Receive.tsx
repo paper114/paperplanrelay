@@ -1,26 +1,66 @@
 import { useState } from 'react'
-import { getRandomPlane, likePlane, favoritePlane } from '../services/api'
+import { getRandomPlane, likePlane, unlikePlane, favoritePlane, unfavoritePlane, reportPlane } from '../services/api'
 import type { PaperPlane } from '../services/api'
 import PlaneCard from '../components/PlaneCard'
 import ReportModal from '../components/ReportModal'
-import { reportPlane } from '../services/api'
+
+function PlaneIconReceive() {
+  return (
+    <img src="/plane-icon.png" alt="纸飞机" className="w-20 h-20" draggable={false} />
+  )
+}
+
+function InboxIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+    </svg>
+  )
+}
+
+function RefreshIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10" />
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+    </svg>
+  )
+}
+
+function FrownIcon({ className = 'w-12 h-12' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+      <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2" />
+      <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2" />
+    </svg>
+  )
+}
 
 export default function Receive() {
   const [plane, setPlane] = useState<PaperPlane | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
+  const [animating, setAnimating] = useState(false)
 
   const fetchPlane = async () => {
     setLoading(true)
     setError('')
     setPlane(null)
+    setAnimating(true)
     try {
       const res = await getRandomPlane()
-      setPlane(res.data)
+      setTimeout(() => {
+        setPlane(res.data)
+        setAnimating(false)
+        setLoading(false)
+      }, 600)
     } catch {
       setError('暂时没有纸飞机了，稍后再来看看吧~')
-    } finally {
+      setAnimating(false)
       setLoading(false)
     }
   }
@@ -28,8 +68,13 @@ export default function Receive() {
   const handleLike = async () => {
     if (!plane) return
     try {
-      await likePlane(plane.id)
-      setPlane({ ...plane, likes: plane.likes + 1 })
+      if (plane.isLiked) {
+        await unlikePlane(plane.id)
+        setPlane({ ...plane, likeCount: plane.likeCount - 1, isLiked: false })
+      } else {
+        await likePlane(plane.id)
+        setPlane({ ...plane, likeCount: plane.likeCount + 1, isLiked: true })
+      }
     } catch {}
   }
 
@@ -37,6 +82,7 @@ export default function Receive() {
     if (!plane) return
     try {
       if (plane.isFavorited) {
+        await unfavoritePlane(plane.id)
         setPlane({ ...plane, isFavorited: false })
       } else {
         await favoritePlane(plane.id)
@@ -51,53 +97,64 @@ export default function Receive() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center px-4 py-12">
-      <h1 className="text-3xl font-bold text-white mb-8 text-center">接收纸飞机 📬</h1>
+    <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center px-4 py-12 page-enter">
+      <h1 className="text-3xl font-bold mb-8 text-center" style={{ color: 'var(--text-primary)' }}>
+        接收纸飞机
+      </h1>
 
       {!plane && !loading && !error && (
         <div className="flex flex-col items-center">
           <button
             onClick={fetchPlane}
-            className="group relative px-10 py-5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 rounded-2xl text-white font-semibold text-xl transition-all hover:scale-105 animate-pulse-glow"
+            className="text-lg font-semibold text-white inline-flex items-center justify-center gap-2"
+            style={{
+              height: 60,
+              padding: '0 36px',
+              borderRadius: 999,
+              border: '1px solid rgba(255,255,255,0.42)',
+              background: 'linear-gradient(135deg, #78E0B6, #68D8FF)',
+              boxShadow: '0 10px 24px rgba(120, 224, 182, 0.28)',
+              cursor: 'pointer',
+              transition: 'transform 180ms ease-out, box-shadow 180ms ease-out',
+            }}
           >
-            <span className="relative z-10">✈️ 接收纸飞机</span>
+            <InboxIcon className="w-6 h-6" />
+            接收纸飞机
           </button>
-          <p className="text-gray-500 mt-4 text-sm">点击按钮，随机接收一架来自陌生人的纸飞机</p>
+          <p className="text-sm mt-4" style={{ color: 'var(--text-muted)' }}>
+            点击按钮，随机接收一架来自陌生人的纸飞机
+          </p>
         </div>
       )}
 
-      {loading && (
+      {animating && (
         <div className="flex flex-col items-center">
-          <div className="animate-fly-in">
-            <svg viewBox="0 0 100 100" className="w-20 h-20" fill="none">
-              <path d="M10 50L85 15L55 50L85 85Z" fill="#a78bfa" />
-            </svg>
+          <div className="animate-plane-receive">
+            <PlaneIconReceive />
           </div>
-          <p className="text-gray-400 mt-4">正在接收纸飞机...</p>
+          <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>正在接收纸飞机...</p>
         </div>
       )}
 
-      {error && (
+      {error && !animating && (
         <div className="text-center">
-          <div className="text-6xl mb-4">😢</div>
-          <p className="text-gray-400 mb-6">{error}</p>
-          <button
-            onClick={fetchPlane}
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-white transition-colors"
-          >
+          <FrownIcon className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
+          <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
+          <button onClick={fetchPlane} className="btn-secondary">
             再试一次
           </button>
         </div>
       )}
 
-      {plane && !loading && (
-        <div className="w-full max-w-lg">
+      {plane && !animating && (
+        <div className="w-full max-w-lg animate-card-reveal">
           <PlaneCard
             content={plane.content}
             nickname={plane.nickname}
             color={plane.color}
-            likes={plane.likes}
+            likeCount={plane.likeCount}
             createdAt={plane.createdAt}
+            isLiked={plane.isLiked}
             isFavorited={plane.isFavorited}
             onLike={handleLike}
             onFavorite={handleFavorite}
@@ -105,9 +162,10 @@ export default function Receive() {
           />
           <button
             onClick={fetchPlane}
-            className="w-full mt-6 py-3 bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-xl text-gray-300 hover:text-white transition-colors"
+            className="btn-secondary w-full mt-5"
           >
-            🔄 再接收一架
+            <RefreshIcon className="w-4 h-4" />
+            再接收一架
           </button>
         </div>
       )}

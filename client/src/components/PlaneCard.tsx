@@ -4,89 +4,155 @@ interface PlaneCardProps {
   content: string
   nickname?: string
   color: string
-  likes: number
+  likeCount: number
   createdAt: string
   onLike?: () => void
   onFavorite?: () => void
   onReport?: () => void
+  isLiked?: boolean
   isFavorited?: boolean
   expanded?: boolean
   onClick?: () => void
 }
 
-const colorMap: Record<string, string> = {
-  blue: 'from-blue-500/20 to-blue-600/10 border-blue-500/30',
-  red: 'from-red-500/20 to-red-600/10 border-red-500/30',
-  green: 'from-green-500/20 to-green-600/10 border-green-500/30',
-  yellow: 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/30',
-  purple: 'from-purple-500/20 to-purple-600/10 border-purple-500/30',
-  pink: 'from-pink-500/20 to-pink-600/10 border-pink-500/30',
+const colorStyles: Record<string, { bg: string; border: string }> = {
+  blue: { bg: 'rgba(108, 140, 255, 0.08)', border: 'rgba(108, 140, 255, 0.18)' },
+  red: { bg: 'rgba(255, 138, 138, 0.08)', border: 'rgba(255, 138, 138, 0.18)' },
+  green: { bg: 'rgba(120, 224, 182, 0.08)', border: 'rgba(120, 224, 182, 0.18)' },
+  yellow: { bg: 'rgba(255, 224, 138, 0.08)', border: 'rgba(255, 224, 138, 0.18)' },
+  purple: { bg: 'rgba(177, 140, 255, 0.08)', border: 'rgba(177, 140, 255, 0.18)' },
+  pink: { bg: 'rgba(255, 154, 203, 0.08)', border: 'rgba(255, 154, 203, 0.18)' },
+}
+
+function HeartIcon({ filled, className = 'w-4 h-4' }: { filled?: boolean; className?: string }) {
+  return filled ? (
+    <svg viewBox="0 0 24 24" className={className} fill="#FF6B8A" stroke="none">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  )
+}
+
+function StarIcon({ filled, className = 'w-4 h-4' }: { filled?: boolean; className?: string }) {
+  return filled ? (
+    <svg viewBox="0 0 24 24" className={className} fill="#FFE08A" stroke="none">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  )
+}
+
+function FlagIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="#FF8A8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  )
+}
+
+function UserIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
 }
 
 export default function PlaneCard({
   content,
   nickname,
   color,
-  likes,
+  likeCount,
   createdAt,
   onLike,
   onFavorite,
   onReport,
+  isLiked,
   isFavorited,
   expanded = false,
   onClick,
 }: PlaneCardProps) {
-  const bgClass = colorMap[color] || colorMap.blue
+  const cs = colorStyles[color] || colorStyles.blue
 
   return (
     <div
-      className={`bg-gradient-to-br ${bgClass} border rounded-2xl p-6 transition-all duration-300 ${
-        onClick ? 'cursor-pointer hover:scale-[1.02]' : ''
-      } ${expanded ? 'ring-2 ring-blue-500/50' : ''}`}
+      className="glass-card relative"
+      style={{
+        cursor: onClick ? 'pointer' : 'default',
+        background: `var(--bg-glass)`,
+        borderColor: cs.border,
+      }}
       onClick={onClick}
     >
-      <p className={`text-gray-200 leading-relaxed ${expanded ? '' : 'line-clamp-3'}`}>
-        {content}
-      </p>
-      <div className="flex items-center justify-between mt-4 text-sm text-gray-400">
-        <div className="flex items-center gap-3">
-          {nickname && <span className="text-gray-300">✍️ {nickname}</span>}
-          <span>{formatTime(createdAt)}</span>
+      <div className="relative z-10 p-6 sm:p-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ background: cs.border.replace('0.18', '0.6') }}
+          />
+          {nickname && (
+            <span className="flex items-center gap-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <UserIcon className="w-3.5 h-3.5" />
+              {nickname}
+            </span>
+          )}
+          <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+            {formatTime(createdAt)}
+          </span>
         </div>
-        <span>❤️ {likes}</span>
+
+        <p
+          className={`leading-relaxed text-base ${expanded ? '' : 'line-clamp-3'}`}
+          style={{ color: 'var(--text-primary)' }}
+        >
+          {content}
+        </p>
+
+        {(onLike || onFavorite || onReport) && (
+          <div className="flex items-center gap-2 mt-5 pt-4" style={{ borderTop: '1px solid var(--border-soft)' }}>
+            {onLike && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onLike() }}
+                className="btn-icon"
+                style={isLiked ? { background: 'rgba(255, 107, 138, 0.15)', borderColor: 'rgba(255, 107, 138, 0.3)', color: '#FF6B8A' } : {}}
+                aria-label={isLiked ? '取消点赞' : '点赞'}
+              >
+                <HeartIcon filled={isLiked} className="w-4 h-4" />
+                <span>{likeCount}</span>
+              </button>
+            )}
+            {onFavorite && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onFavorite() }}
+                className="btn-icon"
+                style={isFavorited ? { background: 'rgba(255, 224, 138, 0.18)', borderColor: 'rgba(255, 224, 138, 0.3)' } : {}}
+                aria-label={isFavorited ? '取消收藏' : '收藏'}
+              >
+                <StarIcon filled={isFavorited} className="w-4 h-4" />
+                <span>{isFavorited ? '已收藏' : '收藏'}</span>
+              </button>
+            )}
+            {onReport && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onReport() }}
+                className="btn-icon ml-auto"
+                aria-label="举报"
+              >
+                <FlagIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
-      {(onLike || onFavorite || onReport) && (
-        <div className="flex gap-3 mt-4 pt-3 border-t border-gray-700/50">
-          {onLike && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onLike() }}
-              className="px-3 py-1 rounded-lg bg-gray-800/50 hover:bg-red-500/20 text-gray-300 hover:text-red-400 transition-colors text-sm"
-            >
-              ❤️ 点赞
-            </button>
-          )}
-          {onFavorite && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onFavorite() }}
-              className={`px-3 py-1 rounded-lg transition-colors text-sm ${
-                isFavorited
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'bg-gray-800/50 hover:bg-yellow-500/20 text-gray-300 hover:text-yellow-400'
-              }`}
-            >
-              ⭐ {isFavorited ? '已收藏' : '收藏'}
-            </button>
-          )}
-          {onReport && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onReport() }}
-              className="px-3 py-1 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-gray-300 transition-colors text-sm"
-            >
-              🚩 举报
-            </button>
-          )}
-        </div>
-      )}
     </div>
   )
 }
