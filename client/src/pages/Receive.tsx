@@ -79,8 +79,8 @@ export default function Receive() {
         setAnimating(false)
         setLoading(false)
       }, 600)
-    } catch {
-      setError('暂时没有纸飞机了，稍后再来看看吧~')
+    } catch (err: any) {
+      setError(err?.response?.data?.message || '暂时没有纸飞机了，稍后再来看看吧~')
       setAnimating(false)
       setLoading(false)
     }

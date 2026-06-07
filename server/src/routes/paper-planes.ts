@@ -77,7 +77,20 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
     });
 
     if (planes.length === 0) {
-      return res.status(404).json({ success: false, message: "暂无可接收的纸飞机" });
+      const ownPlaneCount = await prisma.paperPlane.count({
+        where: {
+          status: "normal",
+          reportCount: { lt: 3 },
+          userId,
+        },
+      });
+
+      return res.status(404).json({
+        success: false,
+        message: ownPlaneCount > 0
+          ? "现在只有你自己投递的纸飞机，等别人也投一架再来接收吧~"
+          : "暂无可接收的纸飞机",
+      });
     }
 
     const randomIndex = Math.floor(Math.random() * planes.length);
