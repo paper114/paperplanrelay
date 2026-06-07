@@ -1,15 +1,8 @@
-function PlaneIconAbout({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  )
-}
+import type { CSSProperties } from 'react'
 
-function InfoIcon({ className = 'w-5 h-5' }: { className?: string }) {
+function InfoIcon({ className = 'w-5 h-5', style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="16" x2="12" y2="12" />
       <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -17,18 +10,18 @@ function InfoIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-function CompassIcon({ className = 'w-5 h-5' }: { className?: string }) {
+function CompassIcon({ className = 'w-5 h-5', style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
     </svg>
   )
 }
 
-function ShieldIcon({ className = 'w-5 h-5' }: { className?: string }) {
+function ShieldIcon({ className = 'w-5 h-5', style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   )
@@ -36,7 +29,7 @@ function ShieldIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 export default function About() {
   return (
-    <div className="min-h-[calc(100vh-8rem)] max-w-3xl mx-auto px-4 py-12 page-enter">
+    <div className="min-h-[calc(100vh-8.5rem)] max-w-3xl mx-auto px-4 py-12 page-enter">
       <h1 className="text-3xl font-bold mb-8 text-center" style={{ color: 'var(--text-primary)' }}>
         关于纸机驿站
       </h1>
@@ -45,7 +38,7 @@ export default function About() {
         <section className="glass-card p-6 sm:p-8">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
-              <InfoIcon className="w-5 h-5" style={{ color: '#6C8CFF' }} />
+              <InfoIcon className="w-5 h-5" style={{ color: '#111111' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>什么是纸机驿站？</h2>
             </div>
             <p className="leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
@@ -59,14 +52,14 @@ export default function About() {
         <section className="glass-card p-6 sm:p-8">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
-              <CompassIcon className="w-5 h-5" style={{ color: '#B18CFF' }} />
+              <CompassIcon className="w-5 h-5" style={{ color: '#111111' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>玩法说明</h2>
             </div>
             <div className="space-y-4">
               {[
-                { step: '1', title: '投递纸飞机', desc: '写下你想说的话，选择一种颜色，点击投递。你的纸飞机就会飞向某个陌生人。', color: '#6C8CFF' },
-                { step: '2', title: '接收纸飞机', desc: '点击接收按钮，随机获得一架来自陌生人的纸飞机。阅读ta写下的话。', color: '#B18CFF' },
-                { step: '3', title: '互动', desc: '点赞表示你喜欢这架纸飞机，收藏可以保存到你的收藏夹，遇到不良内容可以举报。', color: '#FF9ACB' },
+                { step: '1', title: '投递纸飞机', desc: '写下你想说的话，选择一种颜色，点击投递。你的纸飞机就会飞向某个陌生人。', color: '#111111' },
+                { step: '2', title: '接收纸飞机', desc: '点击接收按钮，随机获得一架来自陌生人的纸飞机。阅读ta写下的话。', color: '#111111' },
+                { step: '3', title: '互动', desc: '点赞表示你喜欢这架纸飞机，收藏可以保存到你的收藏夹，遇到不良内容可以举报。', color: '#111111' },
               ].map((item) => (
                 <div key={item.step} className="flex gap-4">
                   <div
@@ -88,7 +81,7 @@ export default function About() {
         <section className="glass-card p-6 sm:p-8">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
-              <ShieldIcon className="w-5 h-5" style={{ color: '#78E0B6' }} />
+              <ShieldIcon className="w-5 h-5" style={{ color: '#111111' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>核心规则</h2>
             </div>
             <ul className="space-y-2">
@@ -100,7 +93,7 @@ export default function About() {
                 '被举报过多的纸飞机将被管理员删除',
               ].map((rule) => (
                 <li key={rule} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  <span className="mt-1 shrink-0" style={{ color: '#78E0B6' }}>&bull;</span>
+                  <span className="mt-1 shrink-0" style={{ color: '#111111' }}>&bull;</span>
                   {rule}
                 </li>
               ))}

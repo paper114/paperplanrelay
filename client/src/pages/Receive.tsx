@@ -1,12 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { getRandomPlane, likePlane, unlikePlane, favoritePlane, unfavoritePlane, reportPlane } from '../services/api'
 import type { PaperPlane } from '../services/api'
 import PlaneCard from '../components/PlaneCard'
 import ReportModal from '../components/ReportModal'
 
+const RECEIVE_PLANE_STORAGE_KEY = 'paperplanrelay:receive-plane'
+
+function getStoredPlane(): PaperPlane | null {
+  try {
+    const stored = sessionStorage.getItem(RECEIVE_PLANE_STORAGE_KEY)
+    return stored ? JSON.parse(stored) : null
+  } catch {
+    sessionStorage.removeItem(RECEIVE_PLANE_STORAGE_KEY)
+    return null
+  }
+}
+
 function PlaneIconReceive() {
   return (
-    <img src="/plane-icon.png" alt="纸飞机" className="w-20 h-20" draggable={false} />
+    <img src="/plane-icon.webp" alt="纸飞机" className="w-20 h-20" draggable={false} />
   )
 }
 
@@ -28,9 +41,9 @@ function RefreshIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-function FrownIcon({ className = 'w-12 h-12' }: { className?: string }) {
+function FrownIcon({ className = 'w-12 h-12', style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
       <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2" />
@@ -40,11 +53,19 @@ function FrownIcon({ className = 'w-12 h-12' }: { className?: string }) {
 }
 
 export default function Receive() {
-  const [plane, setPlane] = useState<PaperPlane | null>(null)
+  const [plane, setPlane] = useState<PaperPlane | null>(() => getStoredPlane())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
   const [animating, setAnimating] = useState(false)
+
+  useEffect(() => {
+    if (plane) {
+      sessionStorage.setItem(RECEIVE_PLANE_STORAGE_KEY, JSON.stringify(plane))
+    } else {
+      sessionStorage.removeItem(RECEIVE_PLANE_STORAGE_KEY)
+    }
+  }, [plane])
 
   const fetchPlane = async () => {
     setLoading(true)
@@ -97,7 +118,7 @@ export default function Receive() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center px-4 py-12 page-enter">
+    <div className="min-h-[calc(100vh-8.5rem)] flex flex-col items-center justify-center px-4 py-12 page-enter">
       <h1 className="text-3xl font-bold mb-8 text-center" style={{ color: 'var(--text-primary)' }}>
         接收纸飞机
       </h1>
@@ -106,17 +127,8 @@ export default function Receive() {
         <div className="flex flex-col items-center">
           <button
             onClick={fetchPlane}
-            className="text-lg font-semibold text-white inline-flex items-center justify-center gap-2"
-            style={{
-              height: 60,
-              padding: '0 36px',
-              borderRadius: 999,
-              border: '1px solid rgba(255,255,255,0.42)',
-              background: 'linear-gradient(135deg, #78E0B6, #68D8FF)',
-              boxShadow: '0 10px 24px rgba(120, 224, 182, 0.28)',
-              cursor: 'pointer',
-              transition: 'transform 180ms ease-out, box-shadow 180ms ease-out',
-            }}
+            className="btn-primary text-lg"
+            style={{ height: 60, padding: '0 36px' }}
           >
             <InboxIcon className="w-6 h-6" />
             接收纸飞机

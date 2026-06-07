@@ -17,7 +17,7 @@ interface ReportModalProps {
 
 function CheckCircleIcon({ className = 'w-12 h-12' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="#78E0B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="#111111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
       <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
@@ -83,8 +83,8 @@ export default function ReportModal({ open, onClose, onSubmit }: ReportModalProp
                   key={r}
                   className="flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-180"
                   style={{
-                    background: selected === r ? 'rgba(108, 140, 255, 0.12)' : 'rgba(255,255,255,0.20)',
-                    border: selected === r ? '1px solid rgba(108, 140, 255, 0.3)' : '1px solid transparent',
+                    background: '#ffffff',
+                    border: selected === r ? '2px solid #111111' : '2px solid rgba(17,17,17,0.22)',
                   }}
                 >
                   <input
@@ -93,7 +93,7 @@ export default function ReportModal({ open, onClose, onSubmit }: ReportModalProp
                     value={r}
                     checked={selected === r}
                     onChange={() => setSelected(r)}
-                    className="accent-[#6C8CFF]"
+                    className="accent-black"
                   />
                   <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{r}</span>
                 </label>
@@ -106,17 +106,10 @@ export default function ReportModal({ open, onClose, onSubmit }: ReportModalProp
               <button
                 onClick={handleSubmit}
                 disabled={!selected || submitting}
-                className="text-sm"
+                className="btn-primary text-sm"
                 style={{
                   height: 38,
                   padding: '0 18px',
-                  borderRadius: 999,
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  background: selected && !submitting
-                    ? 'linear-gradient(135deg, #FF6B8A, #FF9ACB)'
-                    : 'rgba(255,107,138,0.4)',
-                  color: 'white',
-                  fontWeight: 600,
                   cursor: selected && !submitting ? 'pointer' : 'not-allowed',
                   opacity: submitting ? 0.6 : 1,
                 }}

@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { adminGetPlanes, adminDeletePlane, adminRestorePlane, adminGetStats } from '../services/api'
 import type { AdminPlaneItem, AdminStats } from '../services/api'
 
 const ADMIN_KEY_KEY = 'paperplane_admin_key'
 
-function LockIcon({ className = 'w-5 h-5' }: { className?: string }) {
+function LockIcon({ className = 'w-5 h-5', style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   )
 }
 
-function SearchIcon({ className = 'w-4 h-4' }: { className?: string }) {
+function SearchIcon({ className = 'w-4 h-4', style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
@@ -127,11 +128,11 @@ export default function Admin() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4">
+      <div className="min-h-[calc(100vh-8.5rem)] flex items-center justify-center px-4">
         <form onSubmit={handleLogin} className="glass-card p-8 w-full max-w-sm">
           <div className="relative z-10">
             <div className="flex items-center justify-center gap-2 mb-6">
-              <LockIcon className="w-5 h-5" style={{ color: '#6C8CFF' }} />
+              <LockIcon className="w-5 h-5" style={{ color: '#111111' }} />
               <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>管理员登录</h2>
             </div>
             <input
@@ -155,7 +156,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] max-w-6xl mx-auto px-4 py-8 page-enter">
+    <div className="min-h-[calc(100vh-8.5rem)] max-w-6xl mx-auto px-4 py-8 page-enter">
       <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>管理员后台</h1>
 
       {stats && (
@@ -224,8 +225,9 @@ export default function Admin() {
                         <span
                           className="px-2 py-0.5 rounded-full text-xs"
                           style={{
-                            background: plane.status === 'normal' ? 'rgba(120, 224, 182, 0.15)' : plane.status === 'hidden' ? 'rgba(255, 224, 138, 0.15)' : 'rgba(255, 138, 138, 0.15)',
-                            color: plane.status === 'normal' ? '#78E0B6' : plane.status === 'hidden' ? '#FFE08A' : '#FF8A8A',
+                            background: '#ffffff',
+                            color: '#111111',
+                            border: '1px solid #111111',
                           }}
                         >
                           {plane.status === 'normal' ? '正常' : plane.status === 'hidden' ? '已隐藏' : '已删除'}
@@ -239,7 +241,7 @@ export default function Admin() {
                           <button
                             onClick={() => handleDelete(plane.id)}
                             className="btn-icon"
-                            style={{ color: '#FF8A8A', borderColor: 'rgba(255,138,138,0.2)' }}
+                            style={{ color: '#111111', borderColor: '#111111' }}
                           >
                             <TrashIcon className="w-3.5 h-3.5" />
                             <span>删除</span>
@@ -248,7 +250,7 @@ export default function Admin() {
                           <button
                             onClick={() => handleRestore(plane.id)}
                             className="btn-icon"
-                            style={{ color: '#78E0B6', borderColor: 'rgba(120,224,182,0.2)' }}
+                            style={{ color: '#111111', borderColor: '#111111' }}
                           >
                             <UndoIcon className="w-3.5 h-3.5" />
                             <span>恢复</span>

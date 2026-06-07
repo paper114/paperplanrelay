@@ -5,7 +5,7 @@ import type { Stats } from '../services/api'
 
 function PlaneIconLarge({ className = '' }: { className?: string }) {
   return (
-    <img src="/plane-icon.png" alt="纸飞机" className={className} draggable={false} />
+    <img src="/plane-icon.webp" alt="纸飞机" className={className} draggable={false} />
   )
 }
 
@@ -37,7 +37,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center px-4 py-12 page-enter">
+    <div className="min-h-[calc(100vh-8.5rem)] flex flex-col items-center justify-center px-4 py-12 page-enter">
       <div className="animate-float mb-8">
         <PlaneIconLarge className="w-28 h-28 sm:w-36 sm:h-36" />
       </div>
@@ -56,17 +56,8 @@ export default function Home() {
       <div className="flex flex-col sm:flex-row gap-4 mb-12">
         <Link
           to="/send"
-          className="text-base font-semibold text-white inline-flex items-center justify-center gap-2"
-          style={{
-            height: 52,
-            padding: '0 32px',
-            fontSize: '16px',
-            borderRadius: 999,
-            border: '1px solid rgba(255,255,255,0.42)',
-            background: 'linear-gradient(135deg, #78E0B6, #68D8FF)',
-            boxShadow: '0 10px 24px rgba(120, 224, 182, 0.28)',
-            transition: 'transform 180ms ease-out, box-shadow 180ms ease-out',
-          }}
+          className="btn-primary text-base"
+          style={{ height: 52, padding: '0 32px', fontSize: '16px' }}
         >
           <SendIcon className="w-5 h-5" />
           投递纸飞机
@@ -84,12 +75,12 @@ export default function Home() {
       {stats && (
         <div className="glass-card flex items-center gap-8 px-8 py-5">
           <div className="text-center">
-            <div className="text-2xl font-bold" style={{ color: '#6C8CFF' }}>{stats.totalCount}</div>
+            <div className="text-2xl font-bold" style={{ color: '#111111' }}>{stats.totalCount}</div>
             <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>架纸飞机已投递</div>
           </div>
           <div className="w-px h-8" style={{ background: 'var(--border-soft)' }} />
           <div className="text-center">
-            <div className="text-2xl font-bold" style={{ color: '#B18CFF' }}>—</div>
+            <div className="text-2xl font-bold" style={{ color: '#111111' }}>—</div>
             <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>等待你的纸飞机</div>
           </div>
         </div>

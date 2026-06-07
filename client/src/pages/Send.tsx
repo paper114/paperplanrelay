@@ -12,7 +12,7 @@ const colors = [
 
 function PlaneIconSmall() {
   return (
-    <img src="/plane-icon.png" alt="纸飞机" className="w-20 h-20" draggable={false} />
+    <img src="/plane-icon.webp" alt="纸飞机" className="w-20 h-20" draggable={false} />
   )
 }
 
@@ -36,7 +36,7 @@ function RefreshIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 function CheckCircleIcon({ className = 'w-12 h-12' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="#78E0B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="#111111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
       <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
@@ -90,7 +90,7 @@ export default function Send() {
 
   if (success) {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center px-4 page-enter">
+      <div className="min-h-[calc(100vh-8.5rem)] flex flex-col items-center justify-center px-4 page-enter">
         <div className="glass-card p-8 sm:p-12 text-center max-w-md">
           <div className="relative z-10">
             <CheckCircleIcon className="w-16 h-16 mx-auto mb-4" />
@@ -113,7 +113,7 @@ export default function Send() {
 
   if (planeFlying) {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-8.5rem)] flex items-center justify-center">
         <div className="animate-plane-send">
           <PlaneIconSmall />
         </div>
@@ -122,7 +122,7 @@ export default function Send() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-12 page-enter">
+    <div className="min-h-[calc(100vh-8.5rem)] flex items-center justify-center px-4 py-12 page-enter">
       <div
         className="w-full max-w-lg"
         style={{
@@ -193,8 +193,8 @@ export default function Send() {
                       background: c.hex,
                       opacity: color === c.value ? 1 : 0.45,
                       transform: color === c.value ? 'scale(1.15)' : 'scale(1)',
-                      boxShadow: color === c.value ? `0 4px 14px ${c.hex}44` : 'none',
-                      border: color === c.value ? `2px solid ${c.hex}` : '2px solid transparent',
+                      boxShadow: color === c.value ? '2px 2px 0 #111111' : 'none',
+                      border: '2px solid #111111',
                     }}
                     title={c.label}
                   />
@@ -205,16 +205,11 @@ export default function Send() {
             <button
               onClick={handleSubmit}
               disabled={!content.trim() || submitting}
-              className="w-full text-base font-semibold cursor-pointer text-white inline-flex items-center justify-center gap-2"
+              className="btn-primary w-full text-base"
               style={{
                 height: 52,
                 padding: '0 22px',
-                borderRadius: 999,
-                border: '1px solid rgba(255,255,255,0.42)',
-                background: submitting ? 'rgba(120, 224, 182, 0.4)' : 'linear-gradient(135deg, #78E0B6, #68D8FF)',
-                boxShadow: '0 10px 24px rgba(120, 224, 182, 0.28)',
                 opacity: !content.trim() ? 0.5 : 1,
-                transition: 'transform 180ms ease-out, box-shadow 180ms ease-out, opacity 180ms ease-out',
                 pointerEvents: !content.trim() ? 'none' : 'auto',
               }}
             >

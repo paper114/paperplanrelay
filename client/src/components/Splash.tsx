@@ -60,20 +60,18 @@ export default function Splash({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {phase !== 'done' && (
-        <div className={`splash-overlay ${phase === 'fading' ? 'fade-out' : ''}`}>
-          <div ref={planeRef} className="splash-plane">
-            <img src="/plane-icon.png" alt="" className="w-28 h-28 sm:w-36 sm:h-36" draggable={false} />
-          </div>
-          {trails.map((t) => (
-            <div
-              key={t.id}
-              className="splash-trail"
-              style={{ left: t.x - 3, top: t.y - 3 }}
-            />
-          ))}
+      <div className={`splash-overlay ${phase === 'fading' ? 'fade-out' : ''}`}>
+        <div ref={planeRef} className="splash-plane">
+          <img src="/plane-icon.webp" alt="" className="w-28 h-28 sm:w-36 sm:h-36" draggable={false} />
         </div>
-      )}
+        {trails.map((t) => (
+          <div
+            key={t.id}
+            className="splash-trail"
+            style={{ left: t.x - 3, top: t.y - 3 }}
+          />
+        ))}
+      </div>
       <div style={{ opacity: phase === 'splash' ? 0 : 1, transition: 'opacity 0.5s ease-out' }}>
         {children}
       </div>
