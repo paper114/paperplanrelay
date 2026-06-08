@@ -1,6 +1,8 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "ts-node-dev --respawn src/index.ts",
     "db:migrate": "prisma migrate dev",
