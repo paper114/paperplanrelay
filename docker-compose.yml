@@ -19,7 +19,7 @@ services:
       TRANSFORMERS_CACHE: /data/models
       TRANSFORMERS_REMOTE_HOST: ${TRANSFORMERS_REMOTE_HOST:-https://hf-mirror.com}
     ports:
-      - "3000:3000"
+      - "18080:3000"
       - "127.0.0.1:10001:3000"
     volumes:
       - ./data:/data
