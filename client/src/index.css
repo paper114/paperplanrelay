@@ -522,49 +522,26 @@ svg [stroke]:not([stroke="none"]) {
 
 @keyframes planeCurve {
   0% {
-    transform: translate(-45vw, 45vh) rotate(-20deg) scale(0.5);
+    transform: translate(-45vw, 45vh) rotate(-18deg) scale(0.5);
     opacity: 0;
   }
   10% {
     opacity: 1;
   }
-  40% {
-    transform: translate(-5vw, 10vh) rotate(-5deg) scale(0.8);
+  58% {
+    transform: translate(-6vw, 2vh) rotate(6deg) scale(0.92);
   }
-  70% {
-    transform: translate(10vw, -5vh) rotate(10deg) scale(0.9);
-  }
-  90% {
+  92% {
     opacity: 1;
   }
   100% {
-    transform: translate(45vw, -45vh) rotate(25deg) scale(0.4);
+    transform: translate(45vw, -45vh) rotate(24deg) scale(0.4);
     opacity: 0;
-  }
-}
-
-@keyframes trailFade {
-  0% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.3);
   }
 }
 
 .splash-plane {
-  animation: planeCurve 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
-
-.splash-trail {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #111111;
-  animation: trailFade 600ms ease-out forwards;
+  animation: planeCurve 2s cubic-bezier(0.34, 0.02, 0.18, 1) forwards;
 }
 
 @supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
