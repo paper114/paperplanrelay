@@ -116,21 +116,20 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
     const unreadWithoutCurrent = Number.isInteger(excludeId) && excludeId > 0
       ? unreadPlanes.filter((candidate) => candidate.id !== excludeId)
       : unreadPlanes;
-    const withoutCurrent = Number.isInteger(excludeId) && excludeId > 0 && planes.length > 1
-      ? planes.filter((candidate) => candidate.id !== excludeId)
-      : planes;
-    const leastRecentlyReceivedPlanes = [...withoutCurrent].sort((a, b) => {
-      const aReceivedAt = lastReceivedAtByPlaneId.get(a.id) ?? 0;
-      const bReceivedAt = lastReceivedAtByPlaneId.get(b.id) ?? 0;
-      return aReceivedAt - bReceivedAt;
-    });
     const selectablePlanes = unreadWithoutCurrent.length > 0
       ? unreadWithoutCurrent
       : unreadPlanes.length > 0
         ? unreadPlanes
-        : leastRecentlyReceivedPlanes.length > 0
-          ? leastRecentlyReceivedPlanes.slice(0, Math.max(1, Math.ceil(leastRecentlyReceivedPlanes.length / 3)))
-          : planes;
+        : planes.length === 1
+          ? planes
+          : [];
+
+    if (selectablePlanes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "你已经接收过当前所有纸飞机了，等别人再投一架吧~",
+      });
+    }
     const randomIndex = Math.floor(Math.random() * selectablePlanes.length);
     const plane = selectablePlanes[randomIndex];
 
