@@ -8,7 +8,7 @@ services:
         VITE_PUBLIC_SECURITY_BEIAN: ${VITE_PUBLIC_SECURITY_BEIAN:-}
     image: paperplanrelay:local
     container_name: paperplanrelay
-    restart: unless-stopped
+    restart: always
     environment:
       NODE_ENV: production
       PORT: 3000
