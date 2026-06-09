@@ -297,24 +297,6 @@ svg [stroke]:not([stroke="none"]) {
   gap: 8px;
 }
 
-.btn-primary::after,
-.btn-secondary::after,
-.btn-icon::after {
-  content: "";
-  position: absolute;
-  inset: 2px -2px -2px 2px;
-  border: 1.5px solid currentColor;
-  border-radius: inherit;
-  pointer-events: none;
-  transform: rotate(0.4deg);
-  opacity: 0.68;
-}
-
-.btn-primary::after {
-  border-color: #ffffff;
-  opacity: 0.38;
-}
-
 .btn-primary:hover {
   transform: translate(-1px, -1px);
   box-shadow: 5px 5px 0 #111111;
