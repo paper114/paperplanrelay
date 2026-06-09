@@ -122,22 +122,6 @@ svg [stroke]:not([stroke="none"]) {
   isolation: isolate;
 }
 
-.glass-card::before {
-  content: "";
-  position: absolute;
-  inset: 3px -2px -3px 2px;
-  border-radius: inherit;
-  pointer-events: none;
-  border: 1.5px solid #111111;
-  background: none;
-  transform: rotate(0.35deg);
-  opacity: 0.7;
-}
-
-[data-theme="dark"] .glass-card::before {
-  background: none;
-}
-
 .glass-card-strong {
   position: relative;
   isolation: isolate;
@@ -147,17 +131,6 @@ svg [stroke]:not([stroke="none"]) {
   border: 2px solid var(--border-glass);
   border-radius: 18px 22px 16px 24px;
   box-shadow: var(--shadow-lg);
-}
-
-.glass-card-strong::after {
-  content: "";
-  position: absolute;
-  inset: -2px 2px 2px -2px;
-  border: 1.5px solid #111111;
-  border-radius: inherit;
-  pointer-events: none;
-  transform: rotate(-0.3deg);
-  opacity: 0.7;
 }
 
 .glass-nav {
