@@ -25,6 +25,7 @@ model PaperPlane {
   likes     Like[]
   reports   Report[]
   favorites Favorite[]
+  receives  ReceiveHistory[]
 }
 
 model Report {
@@ -57,6 +58,18 @@ model Favorite {
   paperPlane PaperPlane @relation(fields: [paperPlaneId], references: [id])
 
   @@unique([paperPlaneId, userId])
+}
+
+model ReceiveHistory {
+  id           Int      @id @default(autoincrement())
+  paperPlaneId Int
+  userId       String
+  createdAt    DateTime @default(now())
+
+  paperPlane PaperPlane @relation(fields: [paperPlaneId], references: [id])
+
+  @@unique([paperPlaneId, userId])
+  @@index([userId])
 }
 
 model AppSetting {

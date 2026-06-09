@@ -103,10 +103,27 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
       });
     }
 
-    const candidatePlanes = Number.isInteger(excludeId) && excludeId > 0 && planes.length > 1
+    const receivedPlaneIds = new Set(
+      (await prisma.receiveHistory.findMany({
+        where: { userId },
+        select: { paperPlaneId: true },
+      })).map((history) => history.paperPlaneId),
+    );
+
+    const unreadPlanes = planes.filter((candidate) => !receivedPlaneIds.has(candidate.id));
+    const unreadWithoutCurrent = Number.isInteger(excludeId) && excludeId > 0
+      ? unreadPlanes.filter((candidate) => candidate.id !== excludeId)
+      : unreadPlanes;
+    const withoutCurrent = Number.isInteger(excludeId) && excludeId > 0 && planes.length > 1
       ? planes.filter((candidate) => candidate.id !== excludeId)
       : planes;
-    const selectablePlanes = candidatePlanes.length > 0 ? candidatePlanes : planes;
+    const selectablePlanes = unreadWithoutCurrent.length > 0
+      ? unreadWithoutCurrent
+      : unreadPlanes.length > 0
+        ? unreadPlanes
+        : withoutCurrent.length > 0
+          ? withoutCurrent
+          : planes;
     const randomIndex = Math.floor(Math.random() * selectablePlanes.length);
     const plane = selectablePlanes[randomIndex];
 
@@ -115,6 +132,12 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
     });
     const existingFavorite = await prisma.favorite.findUnique({
       where: { paperPlaneId_userId: { paperPlaneId: plane.id, userId } },
+    });
+
+    await prisma.receiveHistory.upsert({
+      where: { paperPlaneId_userId: { paperPlaneId: plane.id, userId } },
+      update: {},
+      create: { paperPlaneId: plane.id, userId },
     });
 
     return res.json({
