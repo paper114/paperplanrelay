@@ -68,12 +68,13 @@ export default function Receive() {
   }, [plane])
 
   const fetchPlane = async () => {
+    const currentPlaneId = plane?.id
     setLoading(true)
     setError('')
     setPlane(null)
     setAnimating(true)
     try {
-      const res = await getRandomPlane()
+      const res = await getRandomPlane(currentPlaneId)
       setTimeout(() => {
         setPlane(res.data)
         setAnimating(false)

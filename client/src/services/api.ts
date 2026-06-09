@@ -65,8 +65,10 @@ export interface AdminPlaneItem {
 export const createPlane = (data: CreatePlaneData) =>
   api.post('/paper-planes', data)
 
-export const getRandomPlane = () =>
-  api.get<PaperPlane>('/paper-planes/random')
+export const getRandomPlane = (excludeId?: number) =>
+  api.get<PaperPlane>('/paper-planes/random', {
+    params: excludeId ? { excludeId } : undefined,
+  })
 
 export const getStats = () =>
   api.get<Stats>('/paper-planes/stats')

@@ -68,6 +68,7 @@ router.post("/", requireUserId, async (req: Request, res: Response) => {
 router.get("/random", requireUserId, async (req: Request, res: Response) => {
   try {
     const userId = getHeaderString(req, "x-user-id");
+    const excludeId = Number(req.query.excludeId);
 
     const planes = await prisma.paperPlane.findMany({
       where: {
@@ -102,8 +103,12 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
       });
     }
 
-    const randomIndex = Math.floor(Math.random() * planes.length);
-    const plane = planes[randomIndex];
+    const candidatePlanes = Number.isInteger(excludeId) && excludeId > 0 && planes.length > 1
+      ? planes.filter((candidate) => candidate.id !== excludeId)
+      : planes;
+    const selectablePlanes = candidatePlanes.length > 0 ? candidatePlanes : planes;
+    const randomIndex = Math.floor(Math.random() * selectablePlanes.length);
+    const plane = selectablePlanes[randomIndex];
 
     const existingLike = await prisma.like.findUnique({
       where: { paperPlaneId_userId: { paperPlaneId: plane.id, userId } },
