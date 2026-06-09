@@ -103,11 +103,13 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
       });
     }
 
-    const receivedPlaneIds = new Set(
-      (await prisma.receiveHistory.findMany({
-        where: { userId },
-        select: { paperPlaneId: true },
-      })).map((history) => history.paperPlaneId),
+    const receiveHistories = await prisma.receiveHistory.findMany({
+      where: { userId },
+      select: { paperPlaneId: true, createdAt: true },
+    });
+    const receivedPlaneIds = new Set(receiveHistories.map((history) => history.paperPlaneId));
+    const lastReceivedAtByPlaneId = new Map(
+      receiveHistories.map((history) => [history.paperPlaneId, history.createdAt.getTime()]),
     );
 
     const unreadPlanes = planes.filter((candidate) => !receivedPlaneIds.has(candidate.id));
@@ -117,12 +119,17 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
     const withoutCurrent = Number.isInteger(excludeId) && excludeId > 0 && planes.length > 1
       ? planes.filter((candidate) => candidate.id !== excludeId)
       : planes;
+    const leastRecentlyReceivedPlanes = [...withoutCurrent].sort((a, b) => {
+      const aReceivedAt = lastReceivedAtByPlaneId.get(a.id) ?? 0;
+      const bReceivedAt = lastReceivedAtByPlaneId.get(b.id) ?? 0;
+      return aReceivedAt - bReceivedAt;
+    });
     const selectablePlanes = unreadWithoutCurrent.length > 0
       ? unreadWithoutCurrent
       : unreadPlanes.length > 0
         ? unreadPlanes
-        : withoutCurrent.length > 0
-          ? withoutCurrent
+        : leastRecentlyReceivedPlanes.length > 0
+          ? leastRecentlyReceivedPlanes.slice(0, Math.max(1, Math.ceil(leastRecentlyReceivedPlanes.length / 3)))
           : planes;
     const randomIndex = Math.floor(Math.random() * selectablePlanes.length);
     const plane = selectablePlanes[randomIndex];
@@ -136,7 +143,7 @@ router.get("/random", requireUserId, async (req: Request, res: Response) => {
 
     await prisma.receiveHistory.upsert({
       where: { paperPlaneId_userId: { paperPlaneId: plane.id, userId } },
-      update: {},
+      update: { createdAt: new Date() },
       create: { paperPlaneId: plane.id, userId },
     });
 
